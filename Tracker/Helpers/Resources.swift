@@ -14,6 +14,13 @@ enum Resources {
             static var statistic = UIImage(named: "Statistic")
             static var tracker = UIImage(named: "Tracker")
         }
+        enum Error {
+            static var errorTracker = UIImage(named: "errorTracker")
+            static var errorStatistic = UIImage(named: "errorStatistic")
+        }
+        enum Empty {
+            static var emptyTracker = UIImage(named: "Star")
+        }
     }
 }
 
