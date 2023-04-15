@@ -13,37 +13,31 @@ struct TrackerCategory {
 extension TrackerCategory {
     static let sampleData: [TrackerCategory] = [
         TrackerCategory(
-            label: "Домашний уют",
+            label: "Хобби",
             trackers: [
-//                Tracker(
-//                    label: "Поливать растения",
-//                    emoji: "❤️",
-//                    color: UIColor(named: "Color selection 5")!,
-//                    schedule: [.saturday]
-//                )
+                Tracker(
+                    label: "Спорт",
+                    emoji: "🏃‍♀️",
+                    color: UIColor(named: "Color selection 13")!,
+                    schedule: [.saturday]
+                )
             ]
         ),
         TrackerCategory(
-            label: "Радостные мелочи",
+            label: "Работа",
             trackers: [
-//                Tracker(
-//                    label: "Кошка заслонила камеру на созвоне",
-//                    emoji: "😻",
-//                    color: UIColor(named: "Color selection 2")!,
-//                    schedule: nil
-//                ),
-//                Tracker(
-//                    label: "Бабушка прислала открытку в вотсапе",
-//                    emoji: "🌺",
-//                    color: UIColor(named: "Color selection 1")!,
-//                    schedule: nil
-//                ),
-//                Tracker(
-//                    label: "Свидания в апреле",
-//                    emoji: "❤️",
-//                    color: UIColor(named: "Color selection 14")!,
-//                    schedule: nil
-//                ),
+                Tracker(
+                    label: "Дэйлик",
+                    emoji: "📞",
+                    color: UIColor(named: "Color selection 7")!,
+                    schedule: nil
+                ),
+                Tracker(
+                    label: "Регресс",
+                    emoji: "🔍",
+                    color: UIColor(named: "Color selection 2")!,
+                    schedule: nil
+                )
             ]
         )
     ]
