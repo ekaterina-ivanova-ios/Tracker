@@ -15,29 +15,29 @@ extension TrackerCategory {
         TrackerCategory(
             label: "Хобби",
             trackers: [
-                Tracker(
-                    label: "Спорт",
-                    emoji: "🏃‍♀️",
-                    color: UIColor(named: "Color selection 13")!,
-                    schedule: [.saturday]
-                )
+//                Tracker(
+//                    label: "Спорт",
+//                    emoji: "🏃‍♀️",
+//                    color: UIColor(named: "Color selection 13")!,
+//                    schedule: [.saturday]
+//                )
             ]
         ),
-        TrackerCategory(
+       TrackerCategory(
             label: "Работа",
             trackers: [
-                Tracker(
-                    label: "Дэйлик",
-                    emoji: "📞",
-                    color: UIColor(named: "Color selection 7")!,
-                    schedule: nil
-                ),
-                Tracker(
-                    label: "Регресс",
-                    emoji: "🔍",
-                    color: UIColor(named: "Color selection 2")!,
-                    schedule: nil
-                )
+//                Tracker(
+//                    label: "Дэйлик",
+//                    emoji: "📞",
+//                    color: UIColor(named: "Color selection 7")!,
+//                    schedule: nil
+//                ),
+//                Tracker(
+//                    label: "Регресс",
+//                    emoji: "🔍",
+//                    color: UIColor(named: "Color selection 2")!,
+//                    schedule: nilTrackerViewController
+//                )
             ]
         )
     ]

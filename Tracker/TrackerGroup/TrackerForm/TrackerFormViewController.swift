@@ -72,17 +72,25 @@ final class TrackerFormViewController: UIViewController {
         return shortForms.joined(separator: ", ")
     }
     
+//    private var isConfirmButtonEnabled: Bool = false {
+//        willSet {
+//            if newValue {
+//                confirmButton.backgroundColor = .black
+//                confirmButton.isEnabled = true
+//            } else {
+//                confirmButton.backgroundColor = .gray
+//                confirmButton.isEnabled = false
+//            }
+//        }
+//    }
+    
     private var isConfirmButtonEnabled: Bool = false {
-        willSet {
-            if newValue {
-                confirmButton.backgroundColor = .black
-                confirmButton.isEnabled = true
-            } else {
-                confirmButton.backgroundColor = .gray
-                confirmButton.isEnabled = false
-            }
-        }
+    willSet {
+    confirmButton.isEnabled = newValue
+    confirmButton.backgroundColor = newValue ? .black : .gray
     }
+    }
+
     
     private var isValidationMessageVisible = false {
         didSet {

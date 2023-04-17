@@ -105,7 +105,8 @@ final class TrackerController: UIViewController {
     private let params = UICollectionView.GeometricParams(cellCount: 2, leftInset: 16, rightInset: 16, cellSpacing: 10)
     private var categories: [TrackerCategory] = TrackerCategory.sampleData
     private var searchText = ""
-    private var currentDate = Date.from(date: Date())!
+    private var currentDate = Date()
+//    private var currentDate = Date.from(date: Date())!
     private var completedTrackers: Set<TrackerRecord> = []
     private var visibleCategories: [TrackerCategory] {
         let weekday = Calendar.current.component(.weekday, from: currentDate)
