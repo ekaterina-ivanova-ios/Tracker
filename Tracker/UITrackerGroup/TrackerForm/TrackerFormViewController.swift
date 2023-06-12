@@ -115,7 +115,7 @@ final class TrackerFormViewController: UIViewController {
                 confirmButton.backgroundColor = .black
                 confirmButton.isEnabled = true
             } else {
-                confirmButton.backgroundColor = .gray
+                confirmButton.backgroundColor = .yAGray
                 confirmButton.isEnabled = false
             }
         }
@@ -375,7 +375,10 @@ extension TrackerFormViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
         case 0:
-            let categoriesViewController = CategoriesViewController(selectedCategory: category)
+            let trackerCategoryStore = TrackerCategoryStore()
+            let viewModel = CategoriesViewModel(selectedCategory: category,
+                                                trackerCategoryStore: trackerCategoryStore)
+            let categoriesViewController = CategoriesViewController(viewModel: viewModel)
             categoriesViewController.delegate = self
             let navigationController = UINavigationController(rootViewController: categoriesViewController)
             navigationController.isModalInPresentation = true

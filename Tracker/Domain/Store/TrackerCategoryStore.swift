@@ -1,14 +1,22 @@
 import UIKit
 import CoreData
 
-import UIKit
-import CoreData
-
 protocol TrackerCategoryStoreDelegate: AnyObject {
     func didUpdate()
 }
 
-final class TrackerCategoryStore: NSObject {
+protocol TrackerCategoryStoreProtocol {
+    var delegate: TrackerCategoryStoreDelegate? { get set }
+    var categoriesCoreData: [TrackerCategoryCoreData] { get }
+    
+    func categoryCoreData(with id: UUID) throws -> TrackerCategoryCoreData
+    func makeCategory(from coreData: TrackerCategoryCoreData) throws -> TrackerCategory
+    func makeCategory(with label: String) throws -> TrackerCategory
+    func updateCategory(with data: TrackerCategory.Data) throws
+    func deleteCategory(_ category: TrackerCategory) throws
+}
+
+final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
     
     // MARK: - Properties
 

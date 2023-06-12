@@ -56,7 +56,7 @@ private extension EmojiCell {
 
 extension EmojiCell: SelectionCellProtocol {
     func select() {
-        contentView.backgroundColor = .lightGray
+        contentView.backgroundColor = .yaLightGray
     }
     
     func deselect() {

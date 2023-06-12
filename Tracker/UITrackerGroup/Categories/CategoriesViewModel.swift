@@ -5,13 +5,29 @@ protocol CategoriesViewModelDelegate: AnyObject {
     func didSelectCategory(_ category: TrackerCategory)
 }
 
+protocol CategoriesViewModelProtocol {
+    var delegate: CategoriesViewModelDelegate? { get set }
+    var categories: [TrackerCategory] { get }
+    var selectedCategory: TrackerCategory? { get }
+    
+    func loadCategories()
+    
+    func deleteCategory(_ category: TrackerCategory)
+    
+    func selectCategory(at indexPath: IndexPath)
+    
+    func handleCategoryFormConfirm(data: TrackerCategory.Data)
+    
+    func makeDeleteAlertModel(category: TrackerCategory) -> AlertViewModelProtocol
+}
+
 final class CategoriesViewModel {
     
     // MARK: - Properties
     
     weak var delegate: CategoriesViewModelDelegate?
     
-    private let trackerCategoryStore = TrackerCategoryStore()
+    private var trackerCategoryStore: TrackerCategoryStoreProtocol
     private(set) var categories: [TrackerCategory] = [] {
         didSet {
             delegate?.didUpdateCategories()
@@ -26,37 +42,11 @@ final class CategoriesViewModel {
     
     // MARK: - Lifecycle
     
-    init(selectedCategory: TrackerCategory?) {
+    init(selectedCategory: TrackerCategory?,
+         trackerCategoryStore: TrackerCategoryStoreProtocol) {
         self.selectedCategory = selectedCategory
-        trackerCategoryStore.delegate = self
-    }
-    
-    // MARK: - Public
-    
-    func loadCategories() {
-        categories = getCategoriesFromStore()
-    }
-    
-    func selectCategory(at indexPath: IndexPath) {
-        selectedCategory = categories[indexPath.row]
-    }
-    
-    func handleCategoryFormConfirm(data: TrackerCategory.Data) {
-        if categories.contains(where: { $0.id == data.id }) {
-            updateCategory(with: data)
-        } else {
-            addCategory(with: data.label)
-        }
-    }
-    
-    func deleteCategory(_ category: TrackerCategory) {
-        do {
-            try trackerCategoryStore.deleteCategory(category)
-            loadCategories()
-            if category == selectedCategory {
-                selectedCategory = nil
-            }
-        } catch {}
+        self.trackerCategoryStore = trackerCategoryStore
+        self.trackerCategoryStore.delegate = self
     }
     
     // MARK: - Private
@@ -95,3 +85,47 @@ extension CategoriesViewModel: TrackerCategoryStoreDelegate {
     }
 }
 
+// MARK: - CategoriesViewModelProtocol
+
+extension CategoriesViewModel: CategoriesViewModelProtocol {
+    func loadCategories() {
+        categories = getCategoriesFromStore()
+    }
+    
+    func deleteCategory(_ category: TrackerCategory) {
+        do {
+            try trackerCategoryStore.deleteCategory(category)
+            loadCategories()
+            if category == selectedCategory {
+                selectedCategory = nil
+            }
+        } catch {}
+    }
+    
+    func selectCategory(at indexPath: IndexPath) {
+        selectedCategory = categories[indexPath.row]
+    }
+    
+    func handleCategoryFormConfirm(data: TrackerCategory.Data) {
+        if categories.contains(where: { $0.id == data.id }) {
+            updateCategory(with: data)
+        } else {
+            addCategory(with: data.label)
+        }
+    }
+    
+    func makeDeleteAlertModel(category: TrackerCategory) -> AlertViewModelProtocol {
+        let firstAlertActionModel = AlertActionModel(title: "Отменить",
+                                                     style: .cancel)
+        let secondAlertActionModel = AlertActionModel(title: "Удалить",
+                                                      style: .destructive) { [weak self] _ in
+            self?.deleteCategory(category)
+        }
+        let alertViewModel = AlertViewModel(title: nil,
+                                            message: "Эта категория точно не нужна?",
+                                            preferredStyle: .actionSheet,
+                                            firstAlertActionModel: firstAlertActionModel,
+                                            secondAlertActionModel: secondAlertActionModel)
+        return alertViewModel
+    }
+}

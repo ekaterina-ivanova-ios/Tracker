@@ -10,6 +10,7 @@ extension UIColor {
     static let yaBlue = UIColor(named: "Blue")!
     static let fullBlack = UIColor(named: "Full Black")!
     static let fullWhite = UIColor(named: "Full White")!
+    static let blackDay = UIColor(named: "Black Day")!
     
     static let selection = [
         UIColor(named: "Color selection 1")!,

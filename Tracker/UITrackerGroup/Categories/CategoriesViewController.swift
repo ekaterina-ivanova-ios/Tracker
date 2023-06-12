@@ -18,7 +18,7 @@ final class CategoriesViewController: UIViewController {
         table.backgroundColor = .clear
         return table
     }()
-    private let notFoundStack = NotFoundStack(label: "Привычки и события можно объединить по смыслу")
+    private let notFoundStackCategories = NotFoundStack(label: "Привычки и события можно объединить по смыслу")
     private lazy var addButton: UIButton = {
         let button = Button(title: "Добавить категорию")
         button.addTarget(self, action: #selector(didTapAddButton), for: .touchUpInside)
@@ -28,12 +28,12 @@ final class CategoriesViewController: UIViewController {
     // MARK: - Properties
     
     weak var delegate: CategoriesViewControllerDelegate?
-    private let viewModel: CategoriesViewModel
+    private var viewModel: CategoriesViewModelProtocol
     
     // MARK: - Lifecycle
     
-    init(selectedCategory: TrackerCategory?) {
-        viewModel = CategoriesViewModel(selectedCategory: selectedCategory)
+    init(viewModel: CategoriesViewModelProtocol) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -71,20 +71,9 @@ final class CategoriesViewController: UIViewController {
     }
     
     private func deleteCategory(_ category: TrackerCategory) {
-        let alert = UIAlertController(
-            title: nil,
-            message: "Эта категория точно не нужна?",
-            preferredStyle: .actionSheet
-        )
-        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
-        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
-            self?.viewModel.deleteCategory(category)
-        }
-        
-        alert.addAction(deleteAction)
-        alert.addAction(cancelAction)
-        
-        present(alert, animated: true)
+        let alertViewModel = viewModel.makeDeleteAlertModel(category: category)
+        let alertViewController = AlertController(viewModel: alertViewModel)
+        alertViewController.presentAlert(animated: true)
     }
 }
 
@@ -96,7 +85,7 @@ private extension CategoriesViewController {
         view.backgroundColor = .white
         view.addSubview(categoriesTableView)
         view.addSubview(addButton)
-        view.addSubview(notFoundStack)
+        view.addSubview(notFoundStackCategories)
         
         categoriesTableView.dataSource = self
         categoriesTableView.delegate = self
@@ -115,9 +104,9 @@ private extension CategoriesViewController {
             addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addButton.heightAnchor.constraint(equalToConstant: 60),
             // notFoundStack
-            notFoundStack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            notFoundStack.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-            notFoundStack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            notFoundStackCategories.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            notFoundStackCategories.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            notFoundStackCategories.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
         ])
     }
 }
@@ -166,11 +155,12 @@ extension CategoriesViewController: UITableViewDelegate {
 
 extension CategoriesViewController: CategoriesViewModelDelegate {
     func didUpdateCategories() {
-        if viewModel.categories.isEmpty {
-            notFoundStack.isHidden = false
-        } else {
-            notFoundStack.isHidden = true
-        }
+//        if viewModel.categories.isEmpty {
+//            notFoundStackCategories.isHidden = false
+//        } else {
+//            notFoundStackCategories.isHidden = true
+//        }
+        notFoundStackCategories.isHidden =  !viewModel.categories.isEmpty
         categoriesTableView.reloadData()
     }
     
