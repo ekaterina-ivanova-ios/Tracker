@@ -5,6 +5,7 @@ protocol TrackerStoreDelegate: AnyObject {
     func didUpdate()
 }
 
+
 protocol TrackerStoreProtocol {
     var numberOfTrackers: Int { get }
     var numberOfSections: Int { get }

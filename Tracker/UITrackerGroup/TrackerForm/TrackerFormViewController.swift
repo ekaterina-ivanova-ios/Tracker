@@ -93,11 +93,10 @@ final class TrackerFormViewController: UIViewController {
     private var data: Tracker.Data {
         didSet {
             checkFormValidation()
-
         }
     }
     
-    private lazy var category: TrackerCategory? = trackerCategoryStore.categories.randomElement() {
+    private lazy var category: TrackerCategory? = nil {
         didSet {
             checkFormValidation()
         }
@@ -111,12 +110,16 @@ final class TrackerFormViewController: UIViewController {
     }
     
     private var isConfirmButtonEnabled: Bool = false {
-    willSet {
-    confirmButton.isEnabled = newValue
-    confirmButton.backgroundColor = newValue ? .black : .gray
+        willSet {
+            if newValue {
+                confirmButton.backgroundColor = .black
+                confirmButton.isEnabled = true
+            } else {
+                confirmButton.backgroundColor = .yAGray
+                confirmButton.isEnabled = false
+            }
+        }
     }
-    }
-
     
     private var isValidationMessageVisible = false {
         didSet {
@@ -172,9 +175,11 @@ final class TrackerFormViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        hideKeyboardWhenTappedAround()
+        
         setupContent()
         setupConstraints()
-
+        
         checkFormValidation()
     }
     
@@ -369,6 +374,15 @@ extension TrackerFormViewController: UITableViewDataSource {
 extension TrackerFormViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.row {
+        case 0:
+            let trackerCategoryStore = TrackerCategoryStore()
+            let viewModel = CategoriesViewModel(selectedCategory: category,
+                                                trackerCategoryStore: trackerCategoryStore)
+            let categoriesViewController = CategoriesViewController(viewModel: viewModel)
+            categoriesViewController.delegate = self
+            let navigationController = UINavigationController(rootViewController: categoriesViewController)
+            navigationController.isModalInPresentation = true
+            present(navigationController, animated: true)
         case 1:
             guard let schedule = data.schedule else { return }
             let scheduleViewController = ScheduleViewController(selectedWeekdays: schedule)
@@ -382,6 +396,16 @@ extension TrackerFormViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         ListItem.height
+    }
+}
+
+// MARK: - CategoriesViewControllerDelegate
+
+extension TrackerFormViewController: CategoriesViewControllerDelegate {
+    func didConfirm(_ category: TrackerCategory) {
+        self.category = category
+        parametersTableView.reloadData()
+        dismiss(animated: true)
     }
 }
 
@@ -423,6 +447,8 @@ extension TrackerFormViewController: UICollectionViewDataSource {
         }
     }
 }
+
+// MARK: - UICollectionViewDelegate
 
 extension TrackerFormViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -527,3 +553,4 @@ extension TrackerFormViewController: UICollectionViewDelegateFlowLayout {
         )
     }
 }
+
