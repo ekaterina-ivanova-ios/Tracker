@@ -7,24 +7,38 @@ struct Tracker: Identifiable {
     let color: UIColor
     let completedDaysCount: Int
     let schedule: [Weekday]?
+    let pinned: Bool
+    let finished: Bool?
+    let category: TrackerCategory?
     
-    init(id: UUID = UUID(), label: String, emoji: String, color: UIColor, completedDaysCount: Int, schedule: [Weekday]?) {
+    init(id: UUID = UUID(),
+         label: String,
+         emoji: String,
+         color: UIColor,
+         completedDaysCount: Int,
+         schedule: [Weekday]?,
+         pinned: Bool,
+         finished: Bool,
+         category: TrackerCategory) {
         self.id = id
         self.label = label
         self.emoji = emoji
         self.color = color
         self.completedDaysCount = completedDaysCount
         self.schedule = schedule
+        self.pinned = pinned
+        self.category = category
+        self.finished = finished
     }
     
-    init(tracker: Tracker) {
-        self.id = tracker.id
-        self.label = tracker.label
-        self.emoji = tracker.emoji
-        self.color = tracker.color
-        self.completedDaysCount = tracker.completedDaysCount
-        self.schedule = tracker.schedule
-    }
+//    init(tracker: Tracker) {
+//        self.id = tracker.id
+//        self.label = tracker.label
+//        self.emoji = tracker.emoji
+//        self.color = tracker.color
+//        self.completedDaysCount = tracker.completedDaysCount
+//        self.schedule = tracker.schedule
+//    }
     
     init(data: Data) {
         guard let emoji = data.emoji, let color = data.color else { fatalError() }
@@ -35,10 +49,20 @@ struct Tracker: Identifiable {
         self.color = color
         self.completedDaysCount = data.completedDaysCount
         self.schedule = data.schedule
+        self.pinned = data.pinned
+        self.category = data.category
+        self.finished = data.finished
     }
     
     var data: Data {
-        Data(label: label, emoji: emoji, color: color, completedDaysCount: completedDaysCount, schedule: schedule)
+        Data(label: label,
+             emoji: emoji,
+             color: color,
+             completedDaysCount: completedDaysCount,
+             schedule: schedule,
+             pinned: pinned,
+             finished: finished,
+             category: category)
     }
 }
 
@@ -49,6 +73,9 @@ extension Tracker {
         var color: UIColor? = nil
         var completedDaysCount: Int = 0
         var schedule: [Weekday]? = nil
+        var pinned: Bool = false
+        var finished: Bool? = false
+        var category: TrackerCategory?
     }
 }
 

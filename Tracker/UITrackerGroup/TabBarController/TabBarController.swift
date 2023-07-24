@@ -26,6 +26,7 @@ final class TabBarController: UITabBarController {
         tabBar.layer.borderWidth = 1
         tabBar.layer.masksToBounds = true
         
+        let trackerStore = TrackerStore()
         let trackerviewController = TrackerController()
         let statisticviewController = StatisticController()
         

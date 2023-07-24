@@ -5,7 +5,7 @@ final class TrackerController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Трекеры"
+        label.text = NSLocalizedString("main.title", tableName: "Localizable", comment: "main.title")
         label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         return label
     }()
@@ -13,13 +13,16 @@ final class TrackerController: UIViewController {
     private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.translatesAutoresizingMaskIntoConstraints = false
-        picker.backgroundColor = .yaWhite
+        picker.backgroundColor = .yaDatePickerColor
         picker.tintColor = .yaBlue
         picker.datePickerMode = .date
+        picker.layer.cornerRadius = 8
+        picker.layer.masksToBounds = true
         picker.preferredDatePickerStyle = .compact
         picker.locale = Locale(identifier: "ru_RU")
         picker.calendar = Calendar(identifier: .iso8601)
         picker.maximumDate = Date()
+        picker.overrideUserInterfaceStyle = .light
         picker.addTarget(self, action: #selector(didChangedDatePicker), for: .valueChanged)
         return picker
     }()
@@ -34,7 +37,7 @@ final class TrackerController: UIViewController {
                 )
             )!,
             target: self, action: #selector(didTapPlusButton))
-        button.tintColor = .black
+        button.tintColor = .yaBlack
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -42,7 +45,9 @@ final class TrackerController: UIViewController {
     private lazy var searchBar: UISearchBar = {
         let searchField = UISearchBar()
         searchField.translatesAutoresizingMaskIntoConstraints = false
-        searchField.placeholder = "Поиск"
+        searchField.placeholder =  NSLocalizedString("search",
+                                                     tableName: "Localizable",
+                                                     comment: "search")
         searchField.searchBarStyle = .minimal
         searchField.delegate = self
         return searchField
@@ -51,7 +56,7 @@ final class TrackerController: UIViewController {
     private let collectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         view.register(
             TrackerCell.self,
             forCellWithReuseIdentifier: TrackerCell.identifier
@@ -75,7 +80,9 @@ final class TrackerController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.text = "Что будем отслеживать?"
+        label.text = NSLocalizedString("stubTitle",
+                                       tableName: "Localizable",
+                                       comment: "stubTitle")
         label.textColor = .yaBlack
         return label
     }()
@@ -92,19 +99,22 @@ final class TrackerController: UIViewController {
     private lazy var filterButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Фильтры", for: .normal)
+        button.setTitle(NSLocalizedString("filters",
+                                          tableName: "Localizable",
+                                          comment: "filters"),
+                        for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17)
-        button.tintColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
         button.layer.cornerRadius = 16
+        button.tintColor = .yaBlue
         button.backgroundColor = .yaBlue
         return button
     }()
     
     // MARK: - Properties
     
-    private let trackerStore = TrackerStore()
+    private let trackerStore = TrackerStoreProtocol
     private let trackerCategoryStore = TrackerCategoryStore()
-    private let trackerRecordStore = TrackerRecordStore()
+    private lazy let trackerRecordStore = TrackerRecordStore(trackerStore: trackerStore)
     private let params = UICollectionView.GeometricParams(
         cellCount: 2,
         leftInset: 16,
@@ -122,8 +132,18 @@ final class TrackerController: UIViewController {
     }
     private var currentDate = Date.from(date: Date())!
     private var completedTrackers: Set<TrackerRecord> = []
+    private var editingTracker: Tracker?
     
     // MARK: - Lifecycle
+    
+    init(trackerStore: TrackerStoreProtocol) {
+        self.trackerStore = trackerStore
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -132,42 +152,24 @@ final class TrackerController: UIViewController {
         
         setupContent()
         setupConstraints()
+        setupFilterButton()
         
         trackerRecordStore.delegate = self
         trackerStore.delegate = self
         
-        try? trackerStore.loadFilteredTrackers(date: currentDate, searchString: searchText)
         try? trackerRecordStore.loadCompletedTrackers(by: currentDate)
         
         checkNumberOfTrackers()
     }
     
-    // MARK: - Actions
-    
-    @objc
-    private func didTapPlusButton() {
-        let addTrackerViewController = AddTrackerViewController()
-        addTrackerViewController.delegate = self
-        let navigationController = UINavigationController(rootViewController: addTrackerViewController)
-        present(navigationController, animated: true)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        YandexMetricaAnalytics.shared.report(event: "open", params: ["screen": "Main"])
     }
     
-    @objc
-    private func didChangedDatePicker(_ sender: UIDatePicker) {
-        //currentDate = Date.from(date: sender.date)!
-        try? trackerStore.loadFilteredTrackers(date: currentDate, searchString: searchText)
-        try? trackerRecordStore.loadCompletedTrackers(by: currentDate)
-        collectionView.reloadData()
-    }
-    
-    private func checkNumberOfTrackers() {
-        if trackerStore.numberOfTrackers == 0 {
-            notFoundStack.isHidden = false
-            filterButton.isHidden = true
-        } else {
-            notFoundStack.isHidden = true
-            filterButton.isHidden = false
-        }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        YandexMetricaAnalytics.shared.report(event: "close", params: ["screen": "Main"])
     }
 }
 
@@ -175,7 +177,7 @@ final class TrackerController: UIViewController {
 
 private extension TrackerController {
     func setupContent() {
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         view.addSubview(addButton)
         view.addSubview(titleLabel)
         view.addSubview(datePicker)
@@ -222,6 +224,7 @@ private extension TrackerController {
             filterButton.heightAnchor.constraint(equalToConstant: 50),
         ])
     }
+        
 }
 
 // MARK: - UICollectionViewDataSource
@@ -251,6 +254,34 @@ extension TrackerController: UICollectionViewDataSource {
         trackerCell.delegate = self
         
         return trackerCell
+    }
+    
+    // MARK: - Actions
+    
+    @objc
+    private func didTapPlusButton() {
+        let addTrackerViewController = AddTrackerViewController()
+        addTrackerViewController.delegate = self
+        let navigationController = UINavigationController(rootViewController: addTrackerViewController)
+        present(navigationController, animated: true)
+    }
+    
+    @objc
+    private func didChangedDatePicker(_ sender: UIDatePicker) {
+        //currentDate = Date.from(date: sender.date)!
+        try? trackerStore.loadFilteredTrackers(date: currentDate, searchString: searchText)
+        try? trackerRecordStore.loadCompletedTrackers(by: currentDate)
+        collectionView.reloadData()
+    }
+    
+    private func checkNumberOfTrackers() {
+        if trackerStore.numberOfTrackers == 0 {
+            notFoundStack.isHidden = false
+            filterButton.isHidden = true
+        } else {
+            notFoundStack.isHidden = true
+            filterButton.isHidden = false
+        }
     }
 }
 
