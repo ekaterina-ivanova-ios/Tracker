@@ -51,6 +51,8 @@ final class TrackerStore: NSObject {
         return fetchedResultsController
     }()
     
+    private var currentDate: Date?
+    
     // MARK: - Lifecycle
     
     convenience override init() {
@@ -111,6 +113,7 @@ final class TrackerStore: NSObject {
     }
     
     func loadFilteredTrackers(date: Date, searchString: String?) throws {
+        currentDate = date
         var predicates: [NSPredicate] = []
         
         let calendar = Calendar.current
@@ -184,7 +187,7 @@ final class TrackerStore: NSObject {
 
 extension TrackerStore {
     enum StoreError: Error {
-        case decodeError, fetchTrackerError, deleteError, pinError, saveError
+        case decodeError, fetchTrackerError, deleteError, pinError, saveError, categoryFetchError
     }
 }
 
@@ -217,7 +220,10 @@ extension TrackerStore: TrackerStoreProtocol {
     }
     
     func addTracker(_ tracker: Tracker, with category: TrackerCategory) throws {
-        let categoryCoreData = try trackerCategoryStore.categoryCoreData(with: category.id)
+        
+        guard let categoryCoreData = try? trackerCategoryStore.categoryCoreData(with: category.id) else {
+            throw StoreError.categoryFetchError
+        }
         let trackerCoreData = TrackerCoreData(context: context)
         trackerCoreData.trackerId = tracker.id.uuidString
         trackerCoreData.createdAt = Date()
@@ -231,7 +237,9 @@ extension TrackerStore: TrackerStoreProtocol {
         trackerCoreData.pinned = tracker.pinned
         trackerCoreData.finished = false
         trackerCoreData.completedDaysCount = 0
-        try context.save()
+        guard (try? context.save()) != nil else {
+            throw StoreError.saveError
+        }
     }
     
     func updateTracker(_ tracker: Tracker, with data: Tracker.Data) throws {
@@ -274,7 +282,11 @@ extension TrackerStore: TrackerStoreProtocol {
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.didUpdate()
+        if let currentDate {
+            try? loadFilteredTrackers(date: currentDate, searchString: nil)
+        } else {
+            delegate?.didUpdate()
+        }
     }
 }
 

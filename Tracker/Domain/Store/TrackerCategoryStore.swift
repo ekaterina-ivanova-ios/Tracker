@@ -24,8 +24,9 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
     var categoriesCoreData: [TrackerCategoryCoreData] {
         fetchedResultsController.fetchedObjects ?? []
     }
-    
+
     private let context: NSManagedObjectContext
+
     private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData> = {
         let fetchRequest = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
         fetchRequest.sortDescriptors = [
@@ -59,10 +60,11 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
     func categoryCoreData(with id: UUID) throws -> TrackerCategoryCoreData {
         let request = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
         request.predicate = NSPredicate(format: "%K == %@", #keyPath(TrackerCategoryCoreData.categoryId), id.uuidString)
+        request.returnsObjectsAsFaults = false
         let category = try context.fetch(request)
         return category[0]
     }
-    
+
     func makeCategory(from coreData: TrackerCategoryCoreData) throws -> TrackerCategory {
         guard
             let idString = coreData.categoryId,
@@ -105,6 +107,7 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
         try fetchedResultsController.performFetch()
         guard let category = fetchedResultsController.fetchedObjects?.first else { throw StoreError.fetchCategoryError }
         fetchedResultsController.fetchRequest.predicate = nil
+        fetchedResultsController.fetchRequest.returnsObjectsAsFaults = false
         try fetchedResultsController.performFetch()
         return category
     }
@@ -123,3 +126,4 @@ extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
         delegate?.didUpdate()
     }
 }
+

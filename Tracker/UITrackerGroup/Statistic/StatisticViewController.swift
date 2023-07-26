@@ -28,7 +28,7 @@ final class StatisticController: UIViewController {
         label.text = NSLocalizedString("stubTitleStatistics",
                                        tableName: "Localizable",
                                        comment: "stubTitleStatistics")
-        label.textColor = .black
+        label.textColor = .yaBlack
         return label
     }()
     
