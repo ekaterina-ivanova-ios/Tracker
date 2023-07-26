@@ -76,7 +76,7 @@ final class AddTrackerViewController: UIViewController {
 private extension AddTrackerViewController {
     func setupContent() {
         title = "Создание трекера"
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         
         view.addSubview(buttonsStack)
         

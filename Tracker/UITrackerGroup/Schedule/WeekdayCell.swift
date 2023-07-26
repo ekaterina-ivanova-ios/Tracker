@@ -11,7 +11,7 @@ final class WeekdayCell: UITableViewCell {
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .black
+        label.textColor = .yaBlack
         label.font = UIFont.systemFont(ofSize: 17)
         return label
     }()
@@ -55,7 +55,7 @@ final class WeekdayCell: UITableViewCell {
     func configure(with weekday: Weekday, isSelected: Bool, position: ListItem.Position) {
         self.weekday = weekday
         listItem.configure(with: position)
-        nameLabel.text = weekday.rawValue
+        nameLabel.text = weekday.russianForm
         switchView.isOn = isSelected
     }
 }
@@ -85,4 +85,5 @@ private extension WeekdayCell {
         ])
     }
 }
+
 

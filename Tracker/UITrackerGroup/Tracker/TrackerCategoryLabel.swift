@@ -7,7 +7,7 @@ private let titleLabel: UILabel = {
     let label = UILabel()
     label.translatesAutoresizingMaskIntoConstraints = false
     label.font = UIFont.systemFont(ofSize: 19, weight: .bold)
-    label.textColor = .black
+    label.textColor = .yaBlack
     return label
 }()
 

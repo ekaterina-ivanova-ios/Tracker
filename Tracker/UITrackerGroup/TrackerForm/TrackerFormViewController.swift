@@ -2,7 +2,8 @@ import UIKit
 
 protocol TrackerFormViewControllerDelegate: AnyObject {
     func didTapCancelButton()
-    func didTapConfirmButton(category: TrackerCategory, trackerToAdd: Tracker)
+    func didAddTracker(category: TrackerCategory, trackerToAdd: Tracker)
+    func didUpdateTracker(with data: Tracker.Data)
 }
 
 final class TrackerFormViewController: UIViewController {
@@ -89,7 +90,7 @@ final class TrackerFormViewController: UIViewController {
     weak var delegate: TrackerFormViewControllerDelegate?
     private let type: AddTrackerViewController.TrackerType
     private let trackerCategoryStore = TrackerCategoryStore()
-    
+    private let formType: FormType
     private var data: Tracker.Data {
         didSet {
             checkFormValidation()
@@ -112,7 +113,7 @@ final class TrackerFormViewController: UIViewController {
     private var isConfirmButtonEnabled: Bool = false {
         willSet {
             if newValue {
-                confirmButton.backgroundColor = .black
+                confirmButton.backgroundColor = .yaBlack
                 confirmButton.isEnabled = true
             } else {
                 confirmButton.backgroundColor = .yAGray
@@ -154,9 +155,14 @@ final class TrackerFormViewController: UIViewController {
     
     // MARK: - Lifecycle
     
-    init(type: AddTrackerViewController.TrackerType, data: Tracker.Data = Tracker.Data()) {
+    init(type: AddTrackerViewController.TrackerType,
+         formType: TrackerFormViewController.FormType,
+         data: Tracker.Data?) {
+        
         self.type = type
-        self.data = data
+        self.formType = formType
+        self.data = data ?? Tracker.Data()
+        
         switch type {
         case .habit:
             self.data.schedule = []
@@ -181,9 +187,15 @@ final class TrackerFormViewController: UIViewController {
         setupConstraints()
         
         checkFormValidation()
+        makeTitleForConfirmButton()
     }
     
     // MARK: - Actions
+    
+    private func makeTitleForConfirmButton() {
+        let buttonTitle = formType == .add ? "Создать" : "Изменить"
+        confirmButton.setTitle(buttonTitle, for: .normal)
+    }
     
     @objc
     private func didChangedLabelTextField(_ sender: UITextField) {
@@ -203,17 +215,34 @@ final class TrackerFormViewController: UIViewController {
     
     @objc
     private func didTapConfirmButton() {
-        guard let category, let emoji = data.emoji, let color = data.color else { return }
+        switch formType {
+        case .add: addTracker()
+        case .edit: editTracker()
+        }
+    }
+    
+    private func editTracker() {
+        delegate?.didUpdateTracker(with: data)
+    }
+    
+    private func addTracker() {
+        guard
+            let emoji = data.emoji,
+            let color = data.color,
+            let category = data.category
+        else { return }
         
         let newTracker = Tracker(
             label: data.label,
             emoji: emoji,
             color: color,
             completedDaysCount: 0,
-            schedule: data.schedule
+            schedule: data.schedule,
+            pinned: false,
+            category: category
         )
         
-        delegate?.didTapConfirmButton(category: category, trackerToAdd: newTracker)
+        delegate?.didAddTracker(category: category, trackerToAdd: newTracker)
     }
     
     // MARK: - Methods
@@ -247,9 +276,13 @@ final class TrackerFormViewController: UIViewController {
 
 private extension TrackerFormViewController {
     func setupContent() {
-        switch type {
-        case .habit: title = "Новая привычка"
-        case .irregularEvent: title = "Новое нерегулярное событие"
+        switch formType {
+        case .add:
+            switch type {
+            case .habit: title = "Новая привычка"
+            case .irregularEvent: title = "Новое нерегулярное событие"
+            }
+        case .edit: title = "Редактирование привычки"
         }
         
         textField.delegate = self
@@ -263,7 +296,7 @@ private extension TrackerFormViewController {
         colorsCollection.dataSource = self
         colorsCollection.delegate = self
         
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
@@ -403,6 +436,7 @@ extension TrackerFormViewController: UITableViewDelegate {
 
 extension TrackerFormViewController: CategoriesViewControllerDelegate {
     func didConfirm(_ category: TrackerCategory) {
+        self.data.category = category
         self.category = category
         parametersTableView.reloadData()
         dismiss(animated: true)
@@ -551,6 +585,12 @@ extension TrackerFormViewController: UICollectionViewDelegateFlowLayout {
             withHorizontalFittingPriority: .required,
             verticalFittingPriority: .fittingSizeLevel
         )
+    }
+}
+
+extension TrackerFormViewController {
+    enum FormType {
+        case add, edit
     }
 }
 

@@ -7,25 +7,27 @@ struct Tracker: Identifiable {
     let color: UIColor
     let completedDaysCount: Int
     let schedule: [Weekday]?
+    let pinned: Bool
+    let category: TrackerCategory?
     
-    init(id: UUID = UUID(), label: String, emoji: String, color: UIColor, completedDaysCount: Int, schedule: [Weekday]?) {
+    init(id: UUID = UUID(),
+         label: String,
+         emoji: String,
+         color: UIColor,
+         completedDaysCount: Int,
+         schedule: [Weekday]?,
+         pinned: Bool,
+         category: TrackerCategory) {
         self.id = id
         self.label = label
         self.emoji = emoji
         self.color = color
         self.completedDaysCount = completedDaysCount
         self.schedule = schedule
+        self.pinned = pinned
+        self.category = category
     }
-    
-    init(tracker: Tracker) {
-        self.id = tracker.id
-        self.label = tracker.label
-        self.emoji = tracker.emoji
-        self.color = tracker.color
-        self.completedDaysCount = tracker.completedDaysCount
-        self.schedule = tracker.schedule
-    }
-    
+
     init(data: Data) {
         guard let emoji = data.emoji, let color = data.color else { fatalError() }
         
@@ -35,10 +37,18 @@ struct Tracker: Identifiable {
         self.color = color
         self.completedDaysCount = data.completedDaysCount
         self.schedule = data.schedule
+        self.pinned = data.pinned
+        self.category = data.category
     }
     
     var data: Data {
-        Data(label: label, emoji: emoji, color: color, completedDaysCount: completedDaysCount, schedule: schedule)
+        Data(label: label,
+             emoji: emoji,
+             color: color,
+             completedDaysCount: completedDaysCount,
+             schedule: schedule,
+             pinned: pinned,
+             category: category)
     }
 }
 
@@ -49,17 +59,19 @@ extension Tracker {
         var color: UIColor? = nil
         var completedDaysCount: Int = 0
         var schedule: [Weekday]? = nil
+        var pinned: Bool = false
+        var category: TrackerCategory?
     }
 }
 
-enum Weekday: String, CaseIterable, Comparable {
-    case monday = "Понедельник"
-    case tuesday = "Вторник"
-    case wednesday = "Среда"
-    case thurshday = "Четверг"
-    case friday = "Пятница"
-    case saturday = "Суббота"
-    case sunday = "Воскресенье"
+enum Weekday: Int, CaseIterable, Comparable {
+    case monday = 2
+    case tuesday = 3
+    case wednesday = 4
+    case thurshday = 5
+    case friday = 6
+    case saturday = 7
+    case sunday = 1
     
     var shortForm: String {
         switch self {
@@ -73,6 +85,20 @@ enum Weekday: String, CaseIterable, Comparable {
         }
     }
     
+    var russianForm: String {
+        switch self {
+        case .monday: return "Понедельник"
+        case .tuesday: return "Вторник"
+        case .wednesday: return "Среда"
+        case .thurshday: return "Четверг"
+        case .friday: return "Пятница"
+        case .saturday: return "Суббота"
+        case .sunday: return "Воскресенье"
+        }
+    }
+    
+    
+    
     static func < (lhs: Weekday, rhs: Weekday) -> Bool {
         guard
             let first = Self.allCases.firstIndex(of: lhs),
@@ -83,29 +109,3 @@ enum Weekday: String, CaseIterable, Comparable {
     }
 }
 
-extension Weekday {
-    static func code(_ weekdays: [Weekday]?) -> String? {
-        guard let weekdays else { return nil }
-        let indexes = weekdays.map { Self.allCases.firstIndex(of: $0) }
-        var result = ""
-        for i in 0..<7 {
-            if indexes.contains(i) {
-                result += "1"
-            } else {
-                result += "0"
-            }
-        }
-        return result
-    }
-    
-    static func decode(from string: String?) -> [Weekday]? {
-        guard let string else { return nil }
-        var weekdays = [Weekday]()
-        for (index, value) in string.enumerated() {
-            guard value == "1" else { continue }
-            let weekday = Self.allCases[index]
-            weekdays.append(weekday)
-        }
-        return weekdays
-    }
-}

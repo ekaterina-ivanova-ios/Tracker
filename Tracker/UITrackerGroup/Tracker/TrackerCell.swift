@@ -36,7 +36,7 @@ final class TrackerCell : UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.numberOfLines = 0
-        label.textColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+        label.textColor = .yaBlack
         return label
     }()
     
@@ -44,7 +44,7 @@ final class TrackerCell : UICollectionViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .black
+        label.textColor = .yaBlack
         return label
     }()
     
@@ -52,7 +52,7 @@ final class TrackerCell : UICollectionViewCell {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(systemName: "plus"), for: .normal)
-        button.tintColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+        button.tintColor = .yaWhite
         button.layer.cornerRadius = 17
         button.addTarget(self, action: #selector(didTapCompleteButton), for: .touchUpInside)
         return button
@@ -62,12 +62,15 @@ final class TrackerCell : UICollectionViewCell {
     
     static let identifier = "TrackerCell"
     weak var delegate: TrackerCellDelegate?
-    private var tracker: Tracker?
-    private var days = 0 {
-        willSet {
-            daysCountLabel.text = "\(newValue.days())"
+    
+    private weak var contextMenuDelegate: UIContextMenuInteractionDelegate? {
+        didSet {
+            setupContextMenuInteraction()
         }
     }
+    
+    private(set) var tracker: Tracker?
+    private var days = 0
     
     // MARK: - Lifecycle
     
@@ -92,32 +95,48 @@ final class TrackerCell : UICollectionViewCell {
     
     // MARK: - Methods
     
-    func configure(with tracker: Tracker, days: Int, isCompleted: Bool) {
+    func setupContextMenuDelegate(contextMenuDelegate: UIContextMenuInteractionDelegate) {
+        self.contextMenuDelegate = contextMenuDelegate
+    }
+    
+    func configure(with tracker: Tracker, days: Int, completed: Bool) {
         self.tracker = tracker
         self.days = days
         cardView.backgroundColor = tracker.color
         emoji.text = tracker.emoji
         trackerLabel.text = tracker.label
         completeButton.backgroundColor = tracker.color
-        toggleCompletedButton(to: isCompleted)
+        
+        let localizedText = String.localizedStringWithFormat(NSLocalizedString("numberOfDays", comment: "Число дней"), tracker.completedDaysCount)
+        daysCountLabel.text = localizedText
+        toggleCompletedButton(tracker: tracker, completed: completed)
     }
     
-    func toggleCompletedButton(to isCompleted: Bool) {
-        if isCompleted {
-            completeButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
+    func toggleCompletedButton(tracker: Tracker, completed: Bool) {
+        let imageForCompleteButton = completed ? UIImage(systemName: "checkmark") :  UIImage(systemName: "plus")
+        if completed {
             completeButton.layer.opacity = 0.3
         } else {
-            completeButton.setImage(UIImage(systemName: "plus"), for: .normal)
             completeButton.layer.opacity = 1
         }
+        
+        completeButton.setImage(imageForCompleteButton, for: .normal)
     }
     
     func increaseCount() {
         days += 1
+        guard let tracker else { return }
+        let completedDaysCount = tracker.completedDaysCount
+        let localizedText = String.localizedStringWithFormat(NSLocalizedString("numberOfDays", comment: "Число дней"), completedDaysCount)
+        daysCountLabel.text = localizedText
     }
     
     func decreaseCount() {
         days -= 1
+        guard let tracker else { return }
+        let completedDaysCount = tracker.completedDaysCount
+        let localizedText = String.localizedStringWithFormat(NSLocalizedString("numberOfDays", comment: "Число дней"), completedDaysCount)
+        daysCountLabel.text = localizedText
     }
     
     // MARK: - Actions
@@ -125,7 +144,13 @@ final class TrackerCell : UICollectionViewCell {
     @objc
     private func didTapCompleteButton() {
         guard let tracker else { return }
+  
         delegate?.didTapCompleteButton(of: self, with: tracker)
+        
+        YandexMetricaAnalytics.shared.report(event: "click", params: [
+            "screen": "Main",
+            "item": "track"
+        ])
     }
 }
 
@@ -134,9 +159,9 @@ final class TrackerCell : UICollectionViewCell {
 private extension TrackerCell {
     func setupContent() {
         contentView.addSubview(cardView)
-        contentView.addSubview(iconView)
-        contentView.addSubview(emoji)
-        contentView.addSubview(trackerLabel)
+        cardView.addSubview(iconView)
+        iconView.addSubview(emoji)
+        cardView.addSubview(trackerLabel)
         contentView.addSubview(daysCountLabel)
         contentView.addSubview(completeButton)
     }
@@ -171,4 +196,28 @@ private extension TrackerCell {
             completeButton.heightAnchor.constraint(equalTo: completeButton.widthAnchor),
         ])
     }
+    
+    func setupContextMenuInteraction() {
+        guard let contextMenuDelegate else { return }
+        let interaction = UIContextMenuInteraction(delegate: contextMenuDelegate)
+        cardView.addInteraction(interaction)
+    }
 }
+extension TrackerCell {
+    func hasPassed24Hours(from date: Date) -> Bool {
+        // Получаем текущую дату и время
+        let currentDate = Date()
+        
+        // Вычисляем разницу между текущей датой и заданной датой
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour], from: date, to: currentDate)
+        
+        // Проверяем, прошло ли более 24 часов (1 день)
+        if let hours = components.hour, hours >= 24 {
+            return true
+        } else {
+            return false
+        }
+    }
+}
+

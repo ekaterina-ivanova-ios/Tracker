@@ -82,7 +82,7 @@ final class CategoriesViewController: UIViewController {
 private extension CategoriesViewController {
     func setupContent() {
         title = "Категория"
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         view.addSubview(categoriesTableView)
         view.addSubview(addButton)
         view.addSubview(notFoundStackCategories)

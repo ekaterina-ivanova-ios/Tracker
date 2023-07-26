@@ -1,7 +1,7 @@
 import UIKit
 
 final class Button: UIButton {
-    convenience init(color: UIColor = .black, titleColor: UIColor = .white, title: String) {
+    convenience init(color: UIColor = .yaBlack, titleColor: UIColor = .yaWhite, title: String) {
         self.init(type: .system)
         
         setTitle(title, for: .normal)

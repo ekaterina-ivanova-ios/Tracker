@@ -11,6 +11,7 @@ extension UIColor {
     static let fullBlack = UIColor(named: "Full Black")!
     static let fullWhite = UIColor(named: "Full White")!
     static let blackDay = UIColor(named: "Black Day")!
+    static let yaDatePickerColor = UIColor(named: "datePickerColor")!
     
     static let selection = [
         UIColor(named: "Color selection 1")!,
@@ -32,4 +33,24 @@ extension UIColor {
         UIColor(named: "Color selection 17")!,
         UIColor(named: "Color selection 18")!,
     ]
+}
+
+extension UIColor {
+    convenience init?(hexString: String, alpha: CGFloat = 1.0) {
+        var formattedString = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if formattedString.hasPrefix("#") {
+            formattedString.remove(at: formattedString.startIndex)
+        }
+        
+        guard let hexValue = UInt32(formattedString, radix: 16) else {
+            return nil
+        }
+        
+        let red = CGFloat((hexValue & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((hexValue & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(hexValue & 0x0000FF) / 255.0
+        
+        self.init(red: red, green: green, blue: blue, alpha: alpha)
+    }
 }
