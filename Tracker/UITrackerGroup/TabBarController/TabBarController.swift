@@ -27,11 +27,17 @@ final class TabBarController: UITabBarController {
         tabBar.layer.masksToBounds = true
         
         let trackerStore = TrackerStore()
-        let trackerviewController = TrackerController()
-        let statisticviewController = StatisticController()
+
+        let trackerviewController = TrackerController(trackerStore: trackerStore)
+        let viewModel = StatisticViewModel(trackerStore: trackerStore)
+        let statisticviewController = StatisticController(viewModel: viewModel)
         
-        trackerviewController.tabBarItem = UITabBarItem(title: Resources.Strings.TabBar.tracker, image: Resources.Images.TabBar.tracker, tag: Tabs.tracker.rawValue)
-        statisticviewController.tabBarItem = UITabBarItem(title: Resources.Strings.TabBar.statistic, image: Resources.Images.TabBar.statistic, tag: Tabs.statistic.rawValue)
+        trackerviewController.tabBarItem = UITabBarItem(title: Strings.TabBar.tracker,
+                                                        image: Resources.Images.TabBar.tracker,
+                                                        tag: Tabs.tracker.rawValue)
+        statisticviewController.tabBarItem = UITabBarItem(title: Strings.TabBar.statistic,
+                                                          image: Resources.Images.TabBar.statistic,
+                                                          tag: Tabs.statistic.rawValue)
         
         let controllers = [trackerviewController,
                            statisticviewController]

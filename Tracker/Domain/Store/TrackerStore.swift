@@ -18,8 +18,7 @@ protocol TrackerStoreProtocol: AnyObject {
     func togglePin(for tracker: Tracker) throws
     func getTrackerCoreData(by id: UUID) throws -> TrackerCoreData?
     func makeTracker(from coreData: TrackerCoreData) throws -> Tracker
-    func loadFilteredTrackers(date: Date, searchString: String) throws
-    func loadCompletedTrackers() throws -> [Tracker]
+    func loadFilteredTrackers(date: Date, searchString: String?) throws
     func loadAllTrackers() throws -> [Tracker]
 }
 
@@ -79,8 +78,12 @@ final class TrackerStore: NSObject {
             throw StoreError.decodeError }
         let color = uiColorMarshalling.color(from: colorHEX)
         var schedule: [Weekday]? = nil
-        if let scheduleFormCoreData = coreData.schedule as? [String] {
-            schedule = scheduleFormCoreData.compactMap { Weekday(rawValue: $0) }
+        if let scheduleFormCoreData = coreData.schedule {
+            let array = scheduleFormCoreData.components(separatedBy: ",")
+            schedule = array.compactMap {
+                guard let intDay = Int($0) else { return nil }
+                return Weekday(rawValue: intDay)
+            }
         }
   
         return Tracker(
@@ -91,7 +94,6 @@ final class TrackerStore: NSObject {
             completedDaysCount: Int(coreData.completedDaysCount),
             schedule: schedule,
             pinned: coreData.pinned,
-            finished: coreData.finished,
             category: category
         )
     }
@@ -108,39 +110,36 @@ final class TrackerStore: NSObject {
         return tracker
     }
     
-    func loadFilteredTrackers(date: Date, searchString: String) throws {
-        var predicates = [NSPredicate]()
+    func loadFilteredTrackers(date: Date, searchString: String?) throws {
+        var predicates: [NSPredicate] = []
         
-        let weekdayIndex = Calendar.current.component(.weekday, from: date)
-        let iso860WeekdayIndex = weekdayIndex > 1 ? weekdayIndex - 2 : weekdayIndex + 5
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.weekday], from: date)
         
-        var regex = ""
-        for index in 0..<7 {
-            if index == iso860WeekdayIndex {
-                regex += "1"
-            } else {
-                regex += "."
-            }
-        }
+        guard let weekday = components.weekday else { return }
+        let stringWeekday = String(weekday)
+        let weekdayPredicate = NSPredicate(format: "%K == nil OR %K CONTAINS[c] %@",
+                                           #keyPath(TrackerCoreData.schedule),
+                                           #keyPath(TrackerCoreData.schedule),
+                                           stringWeekday)
+        predicates.append(weekdayPredicate)
         
-        predicates.append(NSPredicate(
-            format: "%K == nil OR ANY %K MATCHES[c] %@",
-            #keyPath(TrackerCoreData.schedule),
-            #keyPath(TrackerCoreData.schedule),
-            regex
-        ))
-        
-        if !searchString.isEmpty {
-            predicates.append(NSPredicate(
-                format: "%K CONTAINS[cd] %@",
-                #keyPath(TrackerCoreData.label), searchString
-            ))
+        if let searchString,
+           !searchString.isEmpty {
+            let searchBarPredicate = NSPredicate(format: "%K CONTAINS[c] %@",
+                                                 #keyPath(TrackerCoreData.label),
+                                                 searchString)
+            predicates.append(searchBarPredicate)
         }
         
         fetchedResultsController.fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        
-        try fetchedResultsController.performFetch()
-        
+
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            print("Cannot get filtered trackers \(error)")
+        }
+
         delegate?.didUpdate()
     }
     
@@ -151,7 +150,6 @@ final class TrackerStore: NSObject {
         guard let trackersCoreData else { throw StoreError.fetchTrackerError }
         return trackersCoreData.compactMap { try? makeTracker(from: $0) }
     }
-
 
     private var pinnedTrackers: [Tracker] {
         guard let fetchedObjects = fetchedResultsController.fetchedObjects else { return [] }
@@ -226,21 +224,14 @@ extension TrackerStore: TrackerStoreProtocol {
         trackerCoreData.label = tracker.label
         trackerCoreData.emoji = tracker.emoji
         trackerCoreData.colorHEX = uiColorMarshalling.makeHEX(from: tracker.color)
-        trackerCoreData.schedule = tracker.schedule?.map { $0.rawValue } as AnyObject?
+        if let schedule = tracker.schedule {
+            trackerCoreData.schedule = schedule.map { String($0.rawValue) }.joined(separator: ",")
+        }
         trackerCoreData.category = categoryCoreData
         trackerCoreData.pinned = tracker.pinned
         trackerCoreData.finished = false
         trackerCoreData.completedDaysCount = 0
         try context.save()
-    }
-    
-    func loadCompletedTrackers() throws -> [Tracker] {
-        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
-        request.predicate = NSPredicate(format: "finished == %@", NSNumber(value: true))
-        let trackersCoreData = try? context.fetch(request)
-        
-        guard let trackersCoreData else { throw StoreError.fetchTrackerError }
-        return trackersCoreData.compactMap { try? makeTracker(from: $0) }
     }
     
     func updateTracker(_ tracker: Tracker, with data: Tracker.Data) throws {
@@ -254,13 +245,10 @@ extension TrackerStore: TrackerStoreProtocol {
         trackerCoreData?.label = data.label
         trackerCoreData?.emoji = emoji
         trackerCoreData?.colorHEX = uiColorMarshalling.makeHEX(from: data.color ?? .yaBlack)
-        if let schedule = data.schedule?.map({ $0.rawValue }) {
-            trackerCoreData?.schedule = schedule as AnyObject
+        if let schedule = data.schedule {
+            trackerCoreData?.schedule = schedule.map { String($0.rawValue) }.joined(separator: ",")
         }
         trackerCoreData?.category = categoryCoreData
-        if let finished = data.finished {
-            trackerCoreData?.finished = finished
-        }
         trackerCoreData?.completedDaysCount = Int32(data.completedDaysCount)
         try context.save()
     }

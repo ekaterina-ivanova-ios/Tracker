@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F09D51E2A70E20000367A6A /* StatisticViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F09D51D2A70E20000367A6A /* StatisticViewModel.swift */; };
 		1F74987C29F85EAF00246EA8 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1F74987A29F85EAF00246EA8 /* Model.xcdatamodeld */; };
 		1F74987E29F85EFE00246EA8 /* UIColorMarshalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F74987D29F85EFE00246EA8 /* UIColorMarshalling.swift */; };
 		1F74988429F85FB400246EA8 /* TrackerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F74988329F85FB400246EA8 /* TrackerStore.swift */; };
@@ -75,6 +76,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1F09D51D2A70E20000367A6A /* StatisticViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticViewModel.swift; sourceTree = "<group>"; };
 		1F74987B29F85EAF00246EA8 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		1F74987D29F85EFE00246EA8 /* UIColorMarshalling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorMarshalling.swift; sourceTree = "<group>"; };
 		1F74988329F85FB400246EA8 /* TrackerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerStore.swift; sourceTree = "<group>"; };
@@ -249,6 +251,7 @@
 			children = (
 				1F80BD4729EA99B900739E6B /* StatisticViewController.swift */,
 				1F80BD7C29EADF4400739E6B /* StatisticCell.swift */,
+				1F09D51D2A70E20000367A6A /* StatisticViewModel.swift */,
 			);
 			path = Statistic;
 			sourceTree = "<group>";
@@ -443,7 +446,6 @@
 				46083BDD57D054D423CF1279 /* Pods-TrackerTests.debug.xcconfig */,
 				B847BB9BFF9CD716B4BE823F /* Pods-TrackerTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -628,6 +630,7 @@
 				1F74988629F85FC300246EA8 /* TrackerCategoryStore.swift in Sources */,
 				1F80BD5829EACF3600739E6B /* TrackerCategoryLabel.swift in Sources */,
 				1F80BD5229EA9B2000739E6B /* Int+ext.swift in Sources */,
+				1F09D51E2A70E20000367A6A /* StatisticViewModel.swift in Sources */,
 				1F7499052A0B888C00246EA8 /* UserDefaultsBacked.swift in Sources */,
 				1FA61FAE29CEC8A60057DD73 /* SceneDelegate.swift in Sources */,
 				1F80BD5B29EAD49100739E6B /* Tracker.swift in Sources */,

@@ -28,6 +28,9 @@ final class TrackerViewControllerTests: XCTestCase {
 
 extension TrackerViewControllerTests {
     private class StubTrackerStore: TrackerStoreProtocol {
+        func loadFilteredTrackers(date: Date, searchString: String?) throws {
+        }
+        
         
         weak var delegate: TrackerStoreDelegate?
         
@@ -40,7 +43,6 @@ extension TrackerViewControllerTests {
                      completedDaysCount: 0,
                      schedule: nil,
                      pinned: true,
-                     finished: true,
                      category: category)],
             
             [Tracker(label: "Vacuuming",
@@ -49,7 +51,6 @@ extension TrackerViewControllerTests {
                      completedDaysCount: 2,
                      schedule: [.friday],
                      pinned: false,
-                     finished: false,
                      category: category),
              
              Tracker(label: "Finish house painting",
@@ -58,7 +59,6 @@ extension TrackerViewControllerTests {
                      completedDaysCount: 2,
                      schedule: [.friday, .sunday],
                      pinned: false,
-                     finished: false,
                      category: category)]
             
         ]
@@ -107,14 +107,7 @@ extension TrackerViewControllerTests {
                     completedDaysCount: 2,
                     schedule: [.friday, .sunday],
                     pinned: false,
-                    finished: false,
                     category: category)
-        }
-        
-        func loadFilteredTrackers(date: Date, searchString: String) throws {}
-        
-        func loadCompletedTrackers() throws -> [Tracker] {
-            return []
         }
         
         func loadAllTrackers() throws -> [Tracker] {
@@ -123,5 +116,4 @@ extension TrackerViewControllerTests {
         
     }
 }
-
 

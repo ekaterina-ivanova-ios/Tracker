@@ -239,7 +239,6 @@ final class TrackerFormViewController: UIViewController {
             completedDaysCount: 0,
             schedule: data.schedule,
             pinned: false,
-            finished: false,
             category: category
         )
         
