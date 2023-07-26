@@ -28,7 +28,7 @@ final class CategoryFormViewController: UIViewController {
     private var isConfirmButtonEnabled: Bool = false {
         willSet {
             if newValue {
-                button.backgroundColor = .black
+                button.backgroundColor = .yaBlack
                 button.isEnabled = true
             } else {
                 button.backgroundColor = .gray
@@ -83,7 +83,7 @@ final class CategoryFormViewController: UIViewController {
 private extension CategoryFormViewController {
     func setupContent() {
         title = "Новая категория"
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         view.addSubview(textField)
         view.addSubview(button)
     }

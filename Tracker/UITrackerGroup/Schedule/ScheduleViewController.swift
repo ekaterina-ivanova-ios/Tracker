@@ -59,7 +59,7 @@ final class ScheduleViewController: UIViewController {
 private extension ScheduleViewController {
     func setupContent() {
         title = "Расписание"
-        view.backgroundColor = .white
+        view.backgroundColor = .yaWhite
         view.addSubview(weekdaysTableView)
         view.addSubview(confirmButton)
         
